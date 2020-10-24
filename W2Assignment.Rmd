@@ -1,0 +1,80 @@
+---
+title: "Corona Info Map for the Netherlands"
+author: "Zixin"
+date: "23/10/2020"
+output: html_document
+---
+<style type = "text/css">
+
+h1,h4{
+text-align: center
+}
+</style>
+
+##### **Leaflet practice**
+This report is to practice the package leaflet which is an open-source JavaScript libraries for interactive maps. This map presents three main pieces of information:  
+
+**(1)** Location of Delft, a Netherlands city, which is shown with its own coat of arms  
+**(2)** Corona Virus information of Amsterdam in a pop-up window  
+**(3)** Up-to-Date reported infection person of the Netherlands in colour-scale  
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    cache = TRUE)
+
+library(leaflet)
+library(dplyr)
+library(geojsonio)
+```
+##### **Reading and processing data**
+```{r}
+# reading geoJSON data of the Netherlands and pandemic
+url <- "https://opendata.arcgis.com/datasets/620c2ab925f64ed5979d251ba7753b7f_0.geojson"
+path <- readLines(url)
+write(path, file = "data.geojson")
+geoData <- geojson_read("data.geojson", what = "sp")
+coronaData <- data.frame(townName = geoData$Gemeentenaam, infectionDensity = geoData$Meldingen_100000)
+
+# location of city Delft and Amsterdam
+latLonDelft <- c(52.011736, 4.359208)
+latLonAms <- c(52.366667,4.9)
+```
+##### **Generating map**
+```{r}
+# setting color paletter
+pal <- colorNumeric(
+  palette = "Oranges",
+  domain = coronaData$infectionDensity)
+
+# getting the coat of arms of Delft city
+urlIcon = "https://ih0.redbubble.net/image.404393839.2232/flat,1000x1000,075,f.u2.jpg"
+DefltIcon <- makeIcon(
+  iconUrl = urlIcon,
+  iconRetinaUrl = urlIcon,
+  iconWidth = 45, iconHeight = 25 )
+
+# the pop-up info of Amsterdam City
+amsInfo <- paste(sep = "<br/>",
+  "Amsterdam",
+  paste("Date: ", Sys.Date(), sep = ''),
+  paste(
+      "Reported infection per 100,000: ",
+      as.character(coronaData$infectionDensity[coronaData$townName == 'Amsterdam']),
+      sep = '')
+)
+# generating map
+leaflet(geoData) %>%
+    addTiles() %>%
+    addPolygons(
+        stroke = FALSE, smoothFactor = 0.5, fillOpacity = 0.75,
+        fillColor = ~ pal(Meldingen_100000)) %>%
+    addMarkers(latLonDelft[2], latLonDelft[1], icon = DefltIcon) %>%
+    addLegend(
+        "topleft", pal = pal, values = ~ Meldingen_100000,
+        title = "Reported per 100,000") %>%
+    addPopups(
+        latLonAms[2],latLonAms[1],amsInfo,
+        options = popupOptions(closeButton = TRUE))
+```
+    
