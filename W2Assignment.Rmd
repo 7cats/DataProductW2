@@ -18,6 +18,7 @@ This report is to practice the package leaflet which is an open-source JavaScrip
 **(2)** Corona Virus information of Amsterdam in a pop-up window  
 **(3)** Up-to-Date reported infection person of the Netherlands in colour-scale  
 
+Presented data is download from https://nlcovid-19-esrinl-content.hub.arcgis.com/datasets/covid-19-actuele-gegevens-rivm-vlakken/data?geometry=-3.561%2C50.825%2C13.127%2C53.192&page=2  
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
     echo = TRUE,
